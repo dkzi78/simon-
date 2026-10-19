@@ -1,17 +1,26 @@
-/* Design tokens from spec/DESIGN.md */
+/* Design tokens from spec/DESIGN.md (dark round-board look) */
 :root {
-  --blue: #009fe8;
-  --red: #f12d28;
-  --yellow: #ffe500;
-  --green: #00b51b;
-  --housing: #11131b;
-  --ink: #11131b;
-  --silver: #d9dadd;
-  --canvas: #f7f7f5;
-  --muted: #555b65;
+  --blue: #0a9ff5;
+  --red: #ff4d2e;
+  --yellow: #f7c600;
+  --green: #16b868;
 
-  /* Heebo (self-hosted) is added in Milestone 2 */
-  --font-family: Arial, sans-serif;
+  --bg-top: #0d1a2c;
+  --bg-bottom: #070f1c;
+  --housing: #0a1422;
+  --ring: #1c2c42;
+  --divider: rgba(255, 255, 255, 0.08);
+  --text: #ffffff;
+  --muted: #9aa7b8;
+  --ink: #11131b;
+  --accent: #0a9ff5;
+
+  --radius-control: 16px;
+  --stroke-ui: 2px;
+  --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+  /* Heebo is self-hosted via @fontsource-variable/heebo (ADR-2) */
+  --font-family: 'Heebo Variable', Heebo, Arial, sans-serif;
 }
 
 *,
@@ -26,31 +35,242 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  background: var(--bg-bottom);
+}
+
 body {
   min-height: 100dvh;
-  background: var(--canvas);
-  color: var(--ink);
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--text);
   font-family: var(--font-family);
   font-size: 16px;
   line-height: 24px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app {
+  min-height: 100dvh;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+/* ---------- Home screen ---------- */
+
+.home {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 16px;
-  padding-top: max(32px, env(safe-area-inset-top));
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
   text-align: center;
 }
 
-h1 {
+.header {
+  width: calc(100% + 32px);
+  margin: 0 -16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.title {
   margin: 0;
   font-size: 32px;
   line-height: 40px;
   font-weight: 800;
 }
 
-.subtitle {
-  margin: 8px 0 0;
+/* Status: round and turn during play, result at the end */
+.status {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80px;
+  margin-top: 8px;
+}
+
+.status__main {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.status__detail {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+.status--end .status__main {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 800;
+}
+
+.status--end .status__detail {
+  color: var(--text);
+  font-size: 18px;
+}
+
+/* Round board: positions are fixed explicitly so RTL never mirrors them. */
+.board {
+  direction: ltr;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    'red blue'
+    'green yellow';
+  gap: 8px;
+  width: min(100%, 50dvh);
+  aspect-ratio: 1;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 50%;
+  background: var(--housing);
+  box-shadow:
+    0 0 0 4px var(--ring),
+    0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.pad {
+  --pad-color: var(--blue);
+  display: flex;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: var(--pad-color);
+  color: var(--ink);
+  font-size: clamp(20px, 6vw, 26px);
+  line-height: 1.2;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.2);
+  transition:
+    filter 80ms ease-out,
+    box-shadow 80ms ease-out;
+}
+
+/* Each quadrant is rounded on its outer corner; the label sits away from the hub. */
+.pad--red {
+  --pad-color: var(--red);
+  grid-area: red;
+  border-top-left-radius: 100%;
+  padding: 18% 0 0 18%;
+}
+
+.pad--blue {
+  --pad-color: var(--blue);
+  grid-area: blue;
+  border-top-right-radius: 100%;
+  padding: 18% 18% 0 0;
+}
+
+.pad--green {
+  --pad-color: var(--green);
+  grid-area: green;
+  border-bottom-left-radius: 100%;
+  padding: 0 0 18% 18%;
+}
+
+.pad--yellow {
+  --pad-color: var(--yellow);
+  grid-area: yellow;
+  border-bottom-right-radius: 100%;
+  padding: 0 18% 18% 0;
+}
+
+.pad__label {
+  margin: auto;
+}
+
+.pad:focus-visible {
+  outline-offset: -6px;
+}
+
+.pad.is-active {
+  filter: brightness(1.35) saturate(1.1);
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.8),
+    inset 0 0 26px rgba(255, 255, 255, 0.65),
+    0 0 18px 2px var(--pad-color);
+}
+
+.pad[aria-disabled='true'] {
+  cursor: default;
+}
+
+.board__hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--housing);
+  box-shadow: 0 0 0 4px var(--ring);
+  transform: translate(-50%, -50%);
+}
+
+.notice {
+  min-height: 20px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.action {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 12px;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2bb0ff, var(--accent));
+  color: #fff;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 0 18px rgba(10, 159, 245, 0.45);
+}
+
+.action:active {
+  transform: translateY(1px);
+}
+
+.action--secondary {
+  background: transparent;
+  border: var(--stroke-ui) solid var(--accent);
+  box-shadow: 0 0 14px rgba(10, 159, 245, 0.3);
+}
+
+/* Keeps its space so the layout does not jump during play */
+.action.is-hidden {
+  visibility: hidden;
 }
