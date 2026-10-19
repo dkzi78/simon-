@@ -1,0 +1,56 @@
+/* Design tokens from spec/DESIGN.md */
+:root {
+  --blue: #009fe8;
+  --red: #f12d28;
+  --yellow: #ffe500;
+  --green: #00b51b;
+  --housing: #11131b;
+  --ink: #11131b;
+  --silver: #d9dadd;
+  --canvas: #f7f7f5;
+  --muted: #555b65;
+
+  /* Heebo (self-hosted) is added in Milestone 2 */
+  --font-family: Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  padding-top: max(32px, env(safe-area-inset-top));
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+}
