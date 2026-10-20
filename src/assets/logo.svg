@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Simon logo mark: a miniature of the round game board (ADR-4) -->
+  <circle cx="50" cy="50" r="48" fill="#0A1422" stroke="#1C2C42" stroke-width="4"/>
+  <path d="M50 50 L50 8 A42 42 0 0 1 92 50 Z" fill="#0A9FF5"/>
+  <path d="M50 50 L8 50 A42 42 0 0 1 50 8 Z" fill="#FF4D2E"/>
+  <path d="M50 50 L92 50 A42 42 0 0 1 50 92 Z" fill="#F7C600"/>
+  <path d="M50 50 L50 92 A42 42 0 0 1 8 50 Z" fill="#16B868"/>
+  <path d="M50 6 V94 M6 50 H94" stroke="#0A1422" stroke-width="5"/>
+  <circle cx="50" cy="50" r="15" fill="#0A1422" stroke="#1C2C42" stroke-width="3"/>
+</svg>

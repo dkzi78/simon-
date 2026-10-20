@@ -1,6 +1,8 @@
 // Game controller: source of truth for the active game; runs side effects after each transition.
 import { BETWEEN_ROUNDS_MS, PRESS_FEEDBACK_MS, type Color } from '../config.ts';
 import type { AudioAdapter } from '../audio/audio.ts';
+import type { Route } from '../app/routes.ts';
+import type { ScoreRepository } from '../storage/scores.ts';
 import * as engine from './engine.ts';
 import type { GameState, Random } from './engine.ts';
 import type { Scheduler } from './scheduler.ts';
@@ -9,19 +11,22 @@ export interface ViewState {
   readonly game: GameState;
   readonly activeColor: Color | null;
   readonly audioAvailable: boolean;
+  readonly storageAvailable: boolean;
 }
 
 export interface Controller {
   start(): void;
   press(color: Color): void;
-  pause(): void;
-  resume(): void;
+  // The game runs only on the home screen while the document is visible (ADR-5).
+  setScreen(screen: Route): void;
+  setDocumentHidden(hidden: boolean): void;
   audioChanged(): void;
 }
 
 export function createController(
   audio: AudioAdapter,
   scheduler: Scheduler,
+  scores: ScoreRepository,
   onChange: (view: ViewState) => void,
   random: Random = Math.random,
 ): Controller {
@@ -30,9 +35,16 @@ export function createController(
   // Each press gets its own token so an old "light off" never clears a newer press.
   let pressToken = 0;
   let pressTimer: number | undefined;
+  let screen: Route = 'home';
+  let documentHidden = false;
 
   function emit(): void {
-    onChange({ game, activeColor, audioAvailable: audio.available });
+    onChange({
+      game,
+      activeColor,
+      audioAvailable: audio.available,
+      storageAvailable: scores.available,
+    });
   }
 
   function setLight(color: Color | null): void {
@@ -66,11 +78,41 @@ export function createController(
     }, PRESS_FEEDBACK_MS);
   }
 
+  function canRun(): boolean {
+    return screen === 'home' && !documentHidden;
+  }
+
+  function pause(): void {
+    const paused = engine.pause(game);
+    if (paused === game) return;
+    game = paused;
+    scheduler.cancel();
+    clearPressFeedback();
+    activeColor = null;
+    emit();
+  }
+
+  function resume(): void {
+    if (game.phase !== 'paused') return;
+    audio.unlock();
+    game = engine.resume(game);
+    activeColor = null;
+    emit();
+    present();
+  }
+
+  // Idle and finished games are unaffected: engine.pause ignores them.
+  function sync(): void {
+    if (canRun()) resume();
+    else pause();
+  }
+
   emit();
 
   return {
     start() {
       if (game.phase !== 'idle' && game.phase !== 'lost' && game.phase !== 'won') return;
+      if (!canRun()) return;
       audio.unlock();
       scheduler.cancel();
       clearPressFeedback();
@@ -86,6 +128,8 @@ export function createController(
       const result = engine.inputColor(game, color, random);
       if (result.outcome === 'ignored') return;
       game = result.state;
+      // A completed round or the end of the game updates the saved scores.
+      if (result.outcome !== 'correct') scores.record(game.completedRounds);
       audio.unlock();
       showPressFeedback(color);
 
@@ -100,23 +144,14 @@ export function createController(
       }
     },
 
-    pause() {
-      const paused = engine.pause(game);
-      if (paused === game) return;
-      game = paused;
-      scheduler.cancel();
-      clearPressFeedback();
-      activeColor = null;
-      emit();
+    setScreen(next) {
+      screen = next;
+      sync();
     },
 
-    resume() {
-      if (game.phase !== 'paused') return;
-      audio.unlock();
-      game = engine.resume(game);
-      activeColor = null;
-      emit();
-      present();
+    setDocumentHidden(hidden) {
+      documentHidden = hidden;
+      sync();
     },
 
     audioChanged() {

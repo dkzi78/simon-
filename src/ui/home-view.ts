@@ -1,7 +1,15 @@
 // Home screen: builds the DOM once and updates text and classes from state.
-import { COLORS, COLOR_LABELS, TOTAL_ROUNDS, type Color } from '../config.ts';
+import {
+  AUDIO_UNAVAILABLE_TEXT,
+  COLORS,
+  COLOR_LABELS,
+  STORAGE_UNAVAILABLE_TEXT,
+  TOTAL_ROUNDS,
+  type Color,
+} from '../config.ts';
 import { displayRound } from '../game/engine.ts';
 import type { ViewState } from '../game/controller.ts';
+import { el } from './dom.ts';
 
 export interface HomeViewHandlers {
   onStart(): void;
@@ -9,22 +17,12 @@ export interface HomeViewHandlers {
 }
 
 export interface HomeView {
+  readonly element: HTMLElement;
   render(view: ViewState): void;
 }
 
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className: string,
-  text = '',
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = className;
-  node.textContent = text;
-  return node;
-}
-
 export function createHomeView(root: HTMLElement, handlers: HomeViewHandlers): HomeView {
-  const screen = el('section', 'home');
+  const screen = el('section', 'screen home');
 
   const header = el('header', 'header');
   header.append(el('h1', 'title', 'סיימון'));
@@ -61,7 +59,8 @@ export function createHomeView(root: HTMLElement, handlers: HomeViewHandlers): H
   root.append(screen);
 
   return {
-    render({ game, activeColor, audioAvailable }) {
+    element: screen,
+    render({ game, activeColor, audioAvailable, storageAvailable }) {
       const accepting = game.phase === 'acceptingInput';
       for (const [color, pad] of pads) {
         pad.classList.toggle('is-active', color === activeColor);
@@ -79,6 +78,7 @@ export function createHomeView(root: HTMLElement, handlers: HomeViewHandlers): H
           main = `${round} · תורך`;
           break;
         case 'betweenRounds':
+        case 'paused':
           main = round;
           break;
         case 'lost':
@@ -103,7 +103,10 @@ export function createHomeView(root: HTMLElement, handlers: HomeViewHandlers): H
       statusDetail.textContent = detail;
       status.classList.toggle('status--end', game.phase === 'lost' || game.phase === 'won');
 
-      notice.textContent = audioAvailable ? '' : 'הצלילים אינם זמינים כעת';
+      const notices: string[] = [];
+      if (!audioAvailable) notices.push(AUDIO_UNAVAILABLE_TEXT);
+      if (!storageAvailable) notices.push(STORAGE_UNAVAILABLE_TEXT);
+      notice.textContent = notices.join('\n');
 
       const finished = game.phase === 'lost' || game.phase === 'won';
       const showAction = finished || game.phase === 'idle';

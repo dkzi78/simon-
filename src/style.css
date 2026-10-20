@@ -16,6 +16,7 @@
   --accent: #0a9ff5;
 
   --radius-control: 16px;
+  --radius-card: 20px;
   --stroke-ui: 2px;
   --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.3);
 
@@ -50,9 +51,18 @@ body {
 }
 
 #app {
+  --nav-height: 64px;
   min-height: 100dvh;
+}
+
+/* Scrolling content; the bottom padding keeps it clear of the fixed navigation. */
+.content {
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
-    max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    calc(var(--nav-height) + env(safe-area-inset-bottom) + 24px) max(16px, env(safe-area-inset-left));
+}
+
+[hidden] {
+  display: none !important;
 }
 
 p {
@@ -71,13 +81,16 @@ button:focus-visible {
 
 /* ---------- Home screen ---------- */
 
+.screen {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
 .home {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
   text-align: center;
 }
 
@@ -86,6 +99,7 @@ button:focus-visible {
   margin: 0 -16px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--divider);
+  text-align: center;
 }
 
 .title {
@@ -140,7 +154,8 @@ button:focus-visible {
     'red blue'
     'green yellow';
   gap: 8px;
-  width: min(100%, 50dvh);
+  /* Height cap leaves room for the header, status, button and navigation on short phones. */
+  width: min(100%, max(240px, 100dvh - 360px));
   aspect-ratio: 1;
   margin-top: 8px;
   padding: 10px;
@@ -240,6 +255,7 @@ button:focus-visible {
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
+  white-space: pre-line;
 }
 
 .action {
@@ -273,4 +289,152 @@ button:focus-visible {
 /* Keeps its space so the layout does not jump during play */
 .action.is-hidden {
   visibility: hidden;
+}
+
+/* ---------- About screen (dark look, see DESIGN 1.2) ---------- */
+
+.about__text {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 24px;
+}
+
+.logo__mark {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+
+.logo__name {
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 800;
+}
+
+.logo,
+.score-card {
+  border: var(--stroke-ui) solid var(--ring);
+  border-radius: var(--radius-card);
+  background: var(--housing);
+  box-shadow: var(--shadow-soft);
+}
+
+.about > .about__text {
+  margin-top: 24px;
+}
+
+.about__subtitle {
+  margin: 24px 0 8px;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 700;
+}
+
+.score-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+/* Label on the right and number on the left, as in the mockup. */
+.score-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+.score-card__label {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.score-card__value {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 800;
+}
+
+.about__notice {
+  text-align: center;
+}
+
+/* ---------- Bottom navigation ---------- */
+
+.nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--ring);
+  background: var(--housing);
+}
+
+.nav__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--nav-height);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Vertical divider between the two items */
+.nav__item + .nav__item {
+  border-right: 1px solid var(--ring);
+}
+
+.nav__item:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: -3px;
+}
+
+.nav__icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The active item is blue and underlined, not marked by color alone. */
+.nav__item[aria-current='page'] {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.nav__item[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  right: 20%;
+  bottom: 4px;
+  left: 20%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
 }
