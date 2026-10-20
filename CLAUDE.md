@@ -59,3 +59,5 @@
 > Claude ממלא זאת ברגע שהאפליקציה יכולה לרוץ (בדרך כלל בסיום Milestone 1), ומעדכן אם משהו משתנה.
 - **הרצה (dev):** `npm run dev` (http://localhost:5173)
 - **בדיקות (test):** `npm test`
+- **Build + Preview (בדיקת PWA/Offline):** `npm run build` ואז `npm run preview` (http://localhost:4173/simon-/). ה־Service Worker פעיל רק כאן, לא ב־dev.
+- **אייקונים (רק אחרי שינוי בלוגו):** `npm run icons`

@@ -80,3 +80,6 @@ desktop.ini
 tmp/
 temp/
 *.tmp
+
+# --- PWA (vite-plugin-pwa dev output) ---
+dev-dist/
