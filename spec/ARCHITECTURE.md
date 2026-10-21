@@ -310,3 +310,8 @@ Local Storage מקומי נפרד מה־Origin של האתר החי. אין צו
 **הקשר:** נדרשים אייקוני PNG (‏192, ‏512, ‏Maskable ו־Apple 180) המבוססים על `src/assets/logo.svg`. יצירה בכל Build הייתה מוסיפה ל־CI תלות בספריית עיבוד תמונה נייטיב (sharp).
 **החלטה:** הסקריפט `scripts/generate-icons.mjs` (פקודה `npm run icons`) משתמש ב־`@vite-pwa/assets-generator` עם Preset ‏`minimal-2023` ויוצר את הקבצים ב־`public/`. ל־Maskable ול־Apple יש רקע מלא בצבע הלוח `#0A1422` ו־Padding. הקבצים נשמרים ב־Repository, וה־Build רק מעתיק אותם.
 **השלכות:** ה־Build וה־CI אינם מריצים את המחולל. שינוי בלוגו מחייב הרצה ידנית של `npm run icons`.
+
+### ADR-8: Workflow פרסום בשני Jobs עם Actions מקובעים ל־SHA
+**הקשר:** סעיף 7 דורש הרשאות Actions מצומצמות וקיבוע Actions ל־Commit SHA מאומת; סעיף 8 דורש שכשל בבדיקות לא יפרסם.
+**החלטה:** `.github/workflows/deploy.yml` כולל Job ‏`build` (הרשאת `contents: read` בלבד: `npm ci`, Type Checking, ‏Unit Tests, Build והעלאת `dist/`) ו־Job ‏`deploy` (`needs: build`, ‏`pages: write`, ‏`id-token: write`, Environment ‏`github-pages`). Concurrency בקבוצה `pages` ללא ביטול ריצה פעילה. כל Action רשמי מקובע ל־SHA של הגרסה האחרונה ב־20.10.2026 (checkout v7.0.1, ‏setup-node v7.1.0, ‏configure-pages v6.0.0, ‏upload-pages-artifact v5.0.0, ‏deploy-pages v5.0.1), עם הערת גרסה. נוסף `workflow_dispatch` להרצה ידנית.
+**השלכות:** עדכון Action נעשה ידנית בהחלפת SHA; אין Dependabot. מקור הפרסום ב־Pages חייב להיות מוגדר ל־**GitHub Actions** לפני הפריסה הראשונה.
